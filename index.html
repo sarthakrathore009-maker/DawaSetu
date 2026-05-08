@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DawaSetu - Smart Medication & Family Health Companion</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar (Desktop) / Bottom Nav (Mobile) -->
+        <nav class="navigation">
+            <div class="nav-brand">
+                <i data-lucide="heart-pulse" class="brand-icon"></i>
+                <h1>DawaSetu</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" class="nav-item active" data-target="dashboard"><i data-lucide="layout-dashboard"></i> <span data-i18n="nav_dashboard">Dashboard</span></a></li>
+                <li><a href="#" class="nav-item" data-target="add-medicine"><i data-lucide="plus-circle"></i> <span data-i18n="nav_add">Add Medicine</span></a></li>
+                <li><a href="#" class="nav-item" data-target="history"><i data-lucide="clock"></i> <span data-i18n="nav_history">History</span></a></li>
+                <li><a href="#" class="nav-item" data-target="insights"><i data-lucide="bar-chart-2"></i> <span data-i18n="nav_insights">Insights</span></a></li>
+                <li><a href="#" class="nav-item" data-target="contacts"><i data-lucide="users"></i> <span data-i18n="nav_contacts">Contacts</span></a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <h2 id="header-title" data-i18n="nav_dashboard">Dashboard</h2>
+                </div>
+                <div class="header-right">
+                    <button id="lang-toggle" class="btn-icon" aria-label="Toggle Language">
+                        <span class="lang-text">EN</span>
+                    </button>
+                    <button id="elder-toggle" class="btn-icon" aria-label="Toggle Elder Mode" title="Elderly Mode">
+                        <i data-lucide="glasses"></i>
+                    </button>
+                    <button id="caregiver-toggle" class="btn-icon" aria-label="Toggle Caregiver View" title="Caregiver Mode">
+                        <i data-lucide="shield-check"></i>
+                    </button>
+                    <button id="logout-btn" class="btn-icon" onclick="app.logout()" title="Logout" aria-label="Logout">
+                        <i data-lucide="log-out" style="color:var(--danger);"></i>
+                    </button>
+                    <div class="profile-section" style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="alert('Logged in as: ' + app.state.user)">
+                        <span id="user-display-name" style="font-weight:600; display:none;"></span>
+                        <div class="profile-icon">
+                            <i data-lucide="user"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="views-container">
+                <!-- Auth View -->
+                <section id="auth" class="view">
+                    <div class="auth-container" style="display:flex; justify-content:center; align-items:center; min-height:80vh;">
+                        <div class="card glass auth-card text-center" style="max-width: 400px; width:100%; padding: 40px 32px;">
+                            <i data-lucide="heart-pulse" style="width:48px; height:48px; color:var(--accent); margin-bottom:16px; display:inline-block;"></i>
+                            <h2 style="margin-bottom: 8px;">Welcome to DawaSetu</h2>
+                            <p class="supportive-text" style="margin-bottom: 32px;">Your smart health companion</p>
+                            
+                            <div class="auth-buttons" style="display:flex; flex-direction:column; gap:16px;">
+                                <button class="btn btn-outline full-width" style="background:white; border:1px solid #CBD5E1; color:var(--text-dark); justify-content:center;" onclick="alert('Google login coming soon!')">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg" style="margin-right:8px;"><g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)"><path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/><path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/><path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/><path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/></g></svg>
+                                    Continue with Google
+                                </button>
+                                <button class="btn btn-outline full-width" style="background:white; border:1px solid #CBD5E1; color:var(--text-dark); justify-content:center;" onclick="alert('Email login coming soon!')">
+                                    <i data-lucide="mail" style="margin-right:8px; width:20px;"></i> Continue with Email
+                                </button>
+                                <button class="btn btn-outline full-width" style="background:white; border:1px solid #CBD5E1; color:var(--text-dark); justify-content:center;" onclick="alert('Mobile login coming soon!')">
+                                    <i data-lucide="smartphone" style="margin-right:8px; width:20px;"></i> Continue with Mobile
+                                </button>
+                                
+                                <div class="divider" style="display:flex; align-items:center; margin:16px 0; color:var(--text-light); font-size:12px; font-weight:600;">
+                                    <div style="flex:1; height:1px; background:#E2E8F0;"></div>
+                                    <span style="padding:0 12px;">OR</span>
+                                    <div style="flex:1; height:1px; background:#E2E8F0;"></div>
+                                </div>
+                                
+                                <button class="btn btn-primary full-width" style="justify-content:center;" onclick="app.loginAsGuest()">
+                                    <i data-lucide="user" style="margin-right:8px; width:20px;"></i> Continue as Guest
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Dashboard View -->
+                <section id="dashboard" class="view active">
+                    <div class="greeting-section">
+                        <h1 id="greeting-text">Good Morning!</h1>
+                        <p id="emotional-message" class="supportive-text">You're consistent this week!</p>
+                    </div>
+
+                    <!-- Main Voice Assistant Card -->
+                    <div class="card glass voice-assistant-card mt-4" style="display:flex; align-items:center; gap:20px; background: linear-gradient(135deg, var(--primary), var(--accent)); border:none;">
+                        <button class="btn-icon voice-main-btn" onclick="app.toggleMainVoice()" id="main-voice-btn" style="width:64px; height:64px; background:white; color:var(--secondary); border:none; box-shadow:0 8px 24px rgba(0,0,0,0.15); flex-shrink:0;">
+                            <i data-lucide="mic" style="width:28px; height:28px;"></i>
+                        </button>
+                        <div>
+                            <h3 style="color:white; margin:0; font-size:20px;">DawaSetu Voice</h3>
+                            <p id="main-voice-text" style="margin:0; color:rgba(255,255,255,0.9); font-size:14px; margin-top:4px;">Tap to speak. Try "Log my morning medicine"</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid mt-4">
+                        <!-- Adherence Score -->
+                        <div class="card adherence-card glass">
+                            <h3 data-i18n="adherence_score">Adherence Score</h3>
+                            <div class="circular-progress">
+                                <svg width="120" height="120">
+                                    <circle class="bg-circle" cx="60" cy="60" r="50"></circle>
+                                    <circle class="progress-circle" cx="60" cy="60" r="50" style="stroke-dashoffset: 0;"></circle>
+                                </svg>
+                                <div class="progress-value">100%</div>
+                            </div>
+                            <div class="heatmap-mini" id="mini-heatmap">
+                                <!-- JS will populate 7 dots -->
+                            </div>
+                        </div>
+
+                        <!-- Today's Medicines -->
+                        <div class="card today-medicines-card glass">
+                            <div class="card-header">
+                                <h3 data-i18n="todays_medicines">Today's Medicines</h3>
+                                <button class="btn-icon primary-text" onclick="app.navigate('add-medicine')"><i data-lucide="plus"></i></button>
+                            </div>
+                            <div id="medicines-list" class="medicines-list">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                        
+                        <!-- Caregiver Status Badge -->
+                        <div class="card caregiver-status-card glass" id="escalation-panel" style="display: none; grid-column: 1 / -1;">
+                            <div class="alert-content warning" style="display:flex; gap:16px; align-items:center;">
+                                <i data-lucide="alert-triangle" class="warning-text"></i>
+                                <div>
+                                    <h4 data-i18n="missed_alert" class="warning-text">Attention Needed</h4>
+                                    <p id="escalation-message">You have missed recent doses.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Add Medicine View -->
+                <section id="add-medicine" class="view">
+                    <div class="card glass mt-4">
+                        <h3 data-i18n="add_new_medicine" style="margin-bottom: 24px;">Add New Medicine</h3>
+                        <form id="add-medicine-form" class="medicine-form">
+                            <div class="form-group">
+                                <label data-i18n="med_name">Medicine Name</label>
+                                <input type="text" id="med-name" required placeholder="e.g. Paracetamol">
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="dosage">Dosage</label>
+                                <input type="text" id="med-dosage" required placeholder="e.g. 500mg or 1 pill">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label data-i18n="timing">Timing</label>
+                                    <select id="med-timing">
+                                        <option value="Morning" data-i18n="time_morning">Morning (08:00)</option>
+                                        <option value="Afternoon" data-i18n="time_afternoon">Afternoon (13:00)</option>
+                                        <option value="Evening" data-i18n="time_evening">Evening (20:00)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="frequency">Frequency</label>
+                                    <select id="med-frequency">
+                                        <option value="Daily" data-i18n="freq_daily">Daily</option>
+                                        <option value="Alternate" data-i18n="freq_alternate">Alternate Days</option>
+                                        <option value="Weekly" data-i18n="freq_weekly">Weekly</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label data-i18n="start_date">Start Date</label>
+                                    <input type="date" id="med-start-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="end_date">End Date</label>
+                                    <input type="date" id="med-end-date">
+                                </div>
+                            </div>
+                            <div class="form-group toggle-group mt-3">
+                                <label data-i18n="critical_med">Critical Medication</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="med-critical">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-4" data-i18n="save_medicine">Save Medicine</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- History View -->
+                <section id="history" class="view">
+                    <div class="card glass mt-4">
+                        <h3 data-i18n="history_log" style="margin-bottom: 20px;">History Log</h3>
+                        <div class="history-filters">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="taken">Taken</button>
+                            <button class="filter-btn" data-filter="missed">Missed</button>
+                        </div>
+                        <div id="history-list" class="history-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Insights View -->
+                <section id="insights" class="view">
+                    <div class="insights-grid mt-4">
+                        <div class="card glass text-center">
+                            <h4 data-i18n="weekly_adherence">Weekly Adherence</h4>
+                            <h2 id="insight-adherence" class="insight-stat primary-text" style="font-size:36px; margin-top:12px;">--%</h2>
+                        </div>
+                        <div class="card glass text-center">
+                            <h4 data-i18n="most_missed">Most Missed Time</h4>
+                            <h2 id="insight-missed-time" class="insight-stat warning-text" style="font-size:28px; margin-top:12px;">--</h2>
+                        </div>
+                        <div class="card glass text-center">
+                            <h4 data-i18n="best_day">Best Day</h4>
+                            <h2 id="insight-best-day" class="insight-stat success-text" style="font-size:28px; margin-top:12px;">--</h2>
+                        </div>
+                    </div>
+                    
+                    <div class="card glass mt-4">
+                        <h3 data-i18n="adherence_chart">7-Day Trend</h3>
+                        <div class="chart-container" id="bar-chart">
+                            <!-- JS Bar Chart -->
+                        </div>
+                        <p id="insight-summary" class="supportive-text mt-3 text-center">Keep up the good work!</p>
+                    </div>
+                </section>
+
+                <!-- Contacts View -->
+                <section id="contacts" class="view">
+                    <div class="card glass mt-4">
+                        <div class="card-header">
+                            <h3 data-i18n="emergency_contacts">Emergency Contacts</h3>
+                            <button class="btn-icon primary-text" onclick="app.showContactModal()"><i data-lucide="plus"></i></button>
+                        </div>
+                        <div id="contacts-list" class="contacts-list mt-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    
+                    <div id="caregiver-view-panel" class="card glass mt-4" style="display: none; border-left: 4px solid var(--warning);">
+                        <h3 data-i18n="caregiver_view_title" style="display:flex; align-items:center; gap:8px;"><i data-lucide="shield-alert" class="warning-text"></i> Caregiver Overview</h3>
+                        <div class="caregiver-stats mt-4" style="display:flex; gap:24px;">
+                            <div class="stat">
+                                <span class="supportive-text">Total Missed (7 days):</span>
+                                <strong id="cg-total-missed" style="font-size:24px; display:block; margin-top:4px;">0</strong>
+                            </div>
+                            <div class="stat">
+                                <span class="supportive-text">Risk Level:</span>
+                                <strong id="cg-risk-level" style="font-size:24px; display:block; margin-top:4px;">Low</strong>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- Quick Add Floating Button -->
+            <button class="fab" onclick="app.navigate('add-medicine')" aria-label="Add Medicine">
+                <i data-lucide="plus"></i>
+            </button>
+        </main>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contact-modal" class="modal">
+        <div class="modal-content card glass">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 data-i18n="add_contact">Add Contact</h3>
+                <button class="btn-icon close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-contact-form" class="medicine-form">
+                    <div class="form-group">
+                        <label data-i18n="contact_name">Name</label>
+                        <input type="text" id="contact-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="contact_phone">Phone</label>
+                        <input type="tel" id="contact-phone" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary full-width mt-4" data-i18n="save_contact">Save Contact</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chatbot Widget -->
+    <div id="chat-widget" class="chat-widget" style="display:none;">
+        <button class="chat-toggle-btn" onclick="app.toggleChat()">
+            <i data-lucide="message-circle"></i>
+        </button>
+
+        <div class="chat-window card glass" id="chat-window" style="display: none;">
+            <div class="chat-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="profile-icon" style="width:32px; height:32px; background:var(--accent); box-shadow:none;"><i data-lucide="bot" style="width:16px;"></i></div>
+                    <div>
+                        <h4 style="margin:0; font-size:14px;">DawaSetu AI</h4>
+                        <span style="font-size:11px; color:var(--accent); font-weight:600;">Online</span>
+                    </div>
+                </div>
+                <button class="btn-icon close-chat" onclick="app.toggleChat()" style="width:28px; height:28px; border:none; box-shadow:none; background:transparent;"><i data-lucide="x" style="width:16px;"></i></button>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="chat-message ai-message">
+                    Hello! I am your DawaSetu health assistant. You can type or use voice to ask me about your medicines.
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <button class="btn-icon voice-btn" onclick="app.toggleVoice()" id="voice-btn" title="Voice Assistant" style="background:var(--bg-color); border:none; width:36px; height:36px;">
+                    <i data-lucide="mic" style="color:var(--text-dark); width:16px;"></i>
+                </button>
+                <input type="text" placeholder="Type a message..." class="chat-input" id="chat-input" onkeypress="if(event.key==='Enter') app.sendChatMessage()">
+                <button class="btn-icon send-btn" onclick="app.sendChatMessage()" style="background:var(--primary); border:none; color:white; width:36px; height:36px;">
+                    <i data-lucide="send" style="width:16px;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/i18n.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
