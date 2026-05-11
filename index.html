@@ -164,6 +164,16 @@
                                 <label data-i18n="dosage">Dosage</label>
                                 <input type="text" id="med-dosage" required placeholder="e.g. 500mg or 1 pill">
                             </div>
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                   <label for="med-dosage">Dosage Type</label>
+    <select id="med-dosage" class="custom-dropdown">
+        <option value="pill">Pill(s)</option>
+        <option value="mg">mg</option>
+        <option value="ml">ml</option>
+        <option value="drops">Drops</option>
+    </select>
+<div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label data-i18n="timing">Timing</label>

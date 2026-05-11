@@ -973,3 +973,60 @@ input:checked + .slider:before {
         padding: 24px;
     }
 }
+/* Container for the buttons on the right side of the medicine card */
+.med-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 100px;
+}
+
+/* Row for Taken and Missed */
+.action-row-top {
+    display: flex;
+    gap: 8px;
+}
+
+/* Base style for all action buttons */
+.btn-action {
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease, opacity 0.2s;
+    padding: 10px;
+}
+
+.btn-action:active {
+    transform: scale(0.95);
+}
+
+/* Specific Colors */
+.btn-action.take {
+    background-color: #10B981; /* Green */
+    color: white;
+    flex: 1;
+}
+
+.btn-action.miss {
+    background-color: #EF4444; /* Red */
+    color: white;
+    flex: 1;
+}
+
+.btn-action.snooze {
+    background-color: #F59E0B; /* Orange */
+    color: white;
+    width: 100%;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Ensure icons inside buttons are sized correctly */
+.btn-action i {
+    width: 18px;
+    height: 18px;
+}
