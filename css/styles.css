@@ -973,3 +973,218 @@ input:checked + .slider:before {
         padding: 24px;
     }
 }
+/* Container for the buttons on the right side of the medicine card */
+.med-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 100px;
+}
+
+/* Row for Taken and Missed */
+.action-row-top {
+    display: flex;
+    gap: 8px;
+}
+
+/* Base style for all action buttons */
+.btn-action {
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease, opacity 0.2s;
+    padding: 10px;
+}
+
+.btn-action:active {
+    transform: scale(0.95);
+}
+
+/* Specific Colors */
+.btn-action.take {
+    background-color: #10B981; /* Green */
+    color: white;
+    flex: 1;
+}
+
+.btn-action.miss {
+    background-color: #EF4444; /* Red */
+    color: white;
+    flex: 1;
+}
+
+.btn-action.snooze {
+    background-color: #F59E0B; /* Orange */
+    color: white;
+    width: 100%;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Ensure icons inside buttons are sized correctly */
+.btn-action i {
+    width: 18px;
+    height: 18px;
+}
+#mini-heatmap {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 10px 5px;
+    width: 100%;
+}
+
+.heatmap-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background-color: #E2E8F0; /* Default pending color */
+}
+
+.heatmap-dot.taken {
+    background-color: #4ADE80;
+}
+
+.heatmap-dot.missed {
+    background-color: #F87171;
+}
+
+.today-highlight span {
+    text-decoration: underline;
+}
+/* Container to keep everything in a straight line */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Spaces out your icons evenly */
+}
+
+/* Hide the Google Branding and 'Powered by' text */
+.goog-logo-link, .goog-te-gadget span, .goog-te-banner-frame {
+    display: none !important;
+}
+.goog-te-gadget {
+    font-size: 0 !important;
+}
+
+/* Style the dropdown to look premium */
+.goog-te-combo {
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #00695c;
+    cursor: pointer;
+    outline: none;
+}
+
+.goog-te-combo:hover {
+    border-color: #00695c;
+    background-color: #fff;
+}
+/* 1. Force the row to align perfectly */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Adjust spacing between icons */
+}
+
+/* 2. Hide the Google G logo and 'Powered by' text */
+.goog-logo-link, 
+.goog-te-gadget span, 
+.goog-te-banner-frame {
+    display: none !important;
+}
+
+.goog-te-gadget {
+    font-size: 0 !important; /* Removes the "Powered by" text */
+}
+
+/* 3. Style the dropdown to look like your other buttons */
+.goog-te-combo {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-size: 13px;
+    color: #333;
+    outline: none;
+    cursor: pointer;
+    font-family: inherit;
+    margin: 0 !important;
+}
+
+/* 4. Remove the blue background/box from the link */
+#ai-translate-btn, .bhasha-selector {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+}
+body {
+    top: 0 !important;
+}
+.skiptranslate {
+    display: none !important;
+}
+/* Hide the Google Translate banner and the bulky "Powered by" text */
+.goog-te-banner-frame.skiptranslate, .goog-logo-link {
+    display: none !important;
+}
+
+body {
+    top: 0px !important;
+}
+
+/* Hide the original Google Translate gadget so only our icon is visible */
+#google_translate_element {
+    display: none;
+}
+
+.goog-te-gadget {
+    font-size: 0 !important;
+}
+.weekly-graph {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 150px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05); /* Works with your glass theme */
+    border-radius: 12px;
+}
+
+.bar-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    gap: 5px;
+}
+
+.bar-fill {
+    width: 20px;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Zone Stamps */
+.status-stamp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.zone-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; }
+.zone-warning { background: #ffecdb; color: #9a3412; border: 1px solid #fb923c; }
+.zone-safe { background: #dcfce7; color: #15803d; border: 1px solid #4ade80; }

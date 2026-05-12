@@ -1,4 +1,3 @@
-// State Management
 const defaultState = {
     user: null,
     medicines: [],
@@ -7,7 +6,8 @@ const defaultState = {
     settings: {
         language: 'en',
         elderlyMode: false,
-        caregiverMode: false
+        caregiverMode: false,
+        isListening: false // <--- Add this line
     }
 };
 
@@ -46,6 +46,7 @@ class DawaSetuApp {
         
         // Update greeting based on time
         this.updateGreeting();
+        
     }
 
     saveState() {
@@ -59,21 +60,25 @@ class DawaSetuApp {
                 e.preventDefault();
                 const target = e.currentTarget.getAttribute('data-target');
                 this.navigate(target);
+               
             });
         });
 
         // Settings Toggles
-        document.getElementById('lang-toggle').addEventListener('click', () => {
-            this.state.settings.language = this.state.settings.language === 'en' ? 'hi' : 'en';
-            this.applySettings();
-            this.saveState();
-        });
+document.getElementById('lang-toggle').addEventListener('click', () => {
+    // 1. Toggle your internal state
+    this.state.settings.language = this.state.settings.language === 'en' ? 'hi' : 'en';
+    
+    // 2. Trigger the Google Translate engine
+    const googleSelect = document.querySelector('.goog-te-combo');
+    if (googleSelect) {
+        googleSelect.value = this.state.settings.language;
+        googleSelect.dispatchEvent(new Event('change')); // This tells Google to translate now
+    }
 
-        document.getElementById('elder-toggle').addEventListener('click', () => {
-            this.state.settings.elderlyMode = !this.state.settings.elderlyMode;
-            this.applySettings();
-            this.saveState();
-        });
+    this.applySettings();
+    this.saveState();
+});
 
         document.getElementById('caregiver-toggle').addEventListener('click', (e) => {
             this.state.settings.caregiverMode = !this.state.settings.caregiverMode;
@@ -283,39 +288,85 @@ class DawaSetuApp {
         }
     }
     
+   // Add these variables to your DawaSetuApp class (after the constructor)
+    isListening = false;
+    recognition = null;
+
     toggleMainVoice() {
-        const btn = document.getElementById('main-voice-btn');
-        const text = document.getElementById('main-voice-text');
-        if(!btn || !text) return;
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         
-        const isListening = btn.classList.contains('listening');
-        
-        if (isListening) {
-            btn.classList.remove('listening');
-            text.textContent = "Processing your voice command...";
-            
-            setTimeout(() => {
-                text.innerHTML = '<i data-lucide="check-circle" style="color:#4ADE80; width:16px; display:inline-block; margin-bottom:-3px;"></i> Medicine logged successfully!';
-                lucide.createIcons();
-                
-                setTimeout(() => {
-                    text.textContent = 'Tap to speak. Try "Log my morning medicine"';
-                }, 3000);
-            }, 1500);
-            
+        if (!SpeechRecognition) {
+            alert("Voice recognition is not supported in this browser.");
+            return;
+        }
+
+        if (!this.recognition) {
+            this.recognition = new SpeechRecognition();
+            this.recognition.continuous = false;
+            this.recognition.lang = 'en-US'; 
+
+            this.recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                document.getElementById('main-voice-text').innerText = `I heard: "${transcript}"`;
+                this.parseMedicineVoice(transcript);
+            };
+
+            this.recognition.onend = () => {
+                this.isListening = false;
+                document.getElementById('main-voice-btn').classList.remove('listening');
+            };
+        }
+
+        if (this.isListening) {
+            this.recognition.stop();
         } else {
-            btn.classList.add('listening');
-            text.textContent = "Listening to you...";
-            
-            // Auto stop after 4 seconds
-            setTimeout(() => {
-                if(btn.classList.contains('listening')) {
-                    this.toggleMainVoice();
-                }
-            }, 4000);
+            this.recognition.start();
+            this.isListening = true;
+            document.getElementById('main-voice-text').innerText = "Listening for medicine name...";
+            document.getElementById('main-voice-btn').classList.add('listening');
         }
     }
 
+    parseMedicineVoice(text) {
+        // Regex to extract medicine name and time
+        const addPattern = /(?:add|log|new)\s+([a-z\d\s]+?)(?:\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?))?$/i;
+        const match = text.match(addPattern);
+
+        if (match) {
+            const medName = match[1].trim();
+            const rawTime = match[2] || "08:00 AM";
+
+            const newMed = {
+                id: this.generateId(),
+                name: medName.charAt(0).toUpperCase() + medName.slice(1),
+                dosage: "1 Tablet", // Default dosage for voice
+                timing: rawTime.includes('PM') ? 'Evening' : 'Morning',
+                frequency: "Daily",
+                startDate: new Date().toISOString().split('T')[0],
+                endDate: "",
+                critical: false,
+                createdAt: new Date().toISOString()
+            };
+
+            // PUSH TO STATE
+            this.state.medicines.push(newMed);
+            
+            // SAVE AND REFRESH UI
+            this.saveState();
+            this.renderMedicines();
+            this.updateDashboard();
+
+            document.getElementById('main-voice-text').innerHTML = 
+                `<span style="color:#22C55E">✅ Added ${newMed.name}!</span>`;
+            
+            setTimeout(() => {
+                document.getElementById('main-voice-text').textContent = 'Tap to speak. Try "Add Aspirin"';
+            }, 3000);
+
+        } else {
+            document.getElementById('main-voice-text').innerText = "Try: 'Add Aspirin' or 'Add Dolo at 9 PM'";
+        }
+    }
     generateId() {
         return Math.random().toString(36).substr(2, 9);
     }
@@ -341,6 +392,43 @@ class DawaSetuApp {
         this.navigate('dashboard');
         this.renderMedicines();
     }
+     // Function to show/hide the three-dot menu
+toggleMedMenu(event, medId) {
+    event.stopPropagation();
+    const allMenus = document.querySelectorAll('.med-dropdown');
+    allMenus.forEach(menu => {
+        if (menu.id !== `menu-${medId}`) menu.style.display = 'none';
+    });
+    
+    const menu = document.getElementById(`menu-${medId}`);
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+
+    // Close menu when clicking anywhere else
+    const closeMenu = () => {
+        menu.style.display = 'none';
+        document.removeEventListener('click', closeMenu);
+    };
+    document.addEventListener('click', closeMenu);
+}
+
+// Function to remove medicine and clean up history to protect adherence score
+removeMedicine(medId) {
+    if (confirm('Are you sure you want to remove this medicine? This will also remove its history so it doesn\'t affect your score.')) {
+        // 1. Remove from medicines list
+        this.state.medicines = this.state.medicines.filter(m => m.id !== medId);
+        
+        // 2. Remove from history (This ensures the adherence score is recalculated without this med)
+        this.state.history = this.state.history.filter(h => h.medId !== medId);
+        
+        // 3. Save and Refresh everything
+        this.saveState();
+        this.renderMedicines();
+        this.updateDashboard(); // Recalculates score
+        this.renderHistory();
+        this.renderInsights();
+        this.runMissDetectionEngine();
+    }
+}
 
     getTodayDoses() {
         // Simplified: return all medicines. For MVP we don't strictly calculate alternate/weekly.
@@ -380,22 +468,33 @@ class DawaSetuApp {
             if (med.timing === 'Afternoon') timeStr = '01:00 PM';
             if (med.timing === 'Evening') timeStr = '08:00 PM';
 
-            div.innerHTML = `
-                <div class="med-info">
-                    <h4>${med.name} ${med.critical ? '<i data-lucide="alert-circle" style="width:16px; color:var(--danger)"></i>' : ''}</h4>
-                    <p>${med.dosage}</p>
-                    <div class="med-time mt-3">
-                        <span class="med-status ${statusClass}"></span> ${timeStr}
-                    </div>
-                </div>
-                <div class="med-actions">
-                    <button class="btn-action take" onclick="app.logDose('${med.id}', 'taken')" title="Take">
-                        <i data-lucide="check" style="width:20px;"></i>
-                    </button>
-                    <button class="btn-action miss" onclick="app.logDose('${med.id}', 'missed')" title="Miss">
-                        <i data-lucide="x" style="width:20px;"></i>
-                    </button>
-                </div>
+      div.innerHTML = `
+    <div class="med-info">
+        <h4>${med.name} ${med.critical ? '<i data-lucide="alert-circle" style="width:16px; color:var(--danger)"></i>' : ''}</h4>
+        <p>${med.dosage}</p>
+        <div class="med-time mt-3">
+            <span class="med-status ${statusClass}"></span> ${timeStr}
+        </div>
+    </div>
+    <div class="med-actions" style="display: flex; align-items: center; gap: 12px;">
+        <div class="med-menu-container" style="position: relative;">
+            <button class="btn-icon" onclick="app.toggleMedMenu(event, '${med.id}')" style="color: var(--text-light);">
+                <i data-lucide="more-vertical"></i>
+            </button>
+            <div id="menu-${med.id}" class="med-dropdown" style="display: none; position: absolute; right: 0; top: 100%; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10; min-width: 120px;">
+                <button onclick="app.removeMedicine('${med.id}')" style="width: 100%; padding: 12px; text-align: left; color: var(--danger); border: none; background: none; display: flex; align-items: center; gap: 8px; font-weight: 500;">
+                    <i data-lucide="trash-2" style="width: 16px;"></i> Remove
+                </button>
+            </div>
+        </div>
+        
+        <button class="btn-action take" style="height: 50px; width: 50px; display: flex; align-items: center; justify-content: center;" onclick="app.logDose('${med.id}', 'taken')" title="Take">
+            <i data-lucide="check" style="width: 24px;"></i>
+        </button>
+    </div>
+
+`;
+`;
             `;
             list.appendChild(div);
         });
@@ -441,66 +540,112 @@ class DawaSetuApp {
         this.runMissDetectionEngine();
     }
 
-    updateDashboard() {
-        const total = this.state.history.length;
-        if (total === 0) {
-            this.setAdherenceScore(0);
-            return;
-        }
+ updateDashboard() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    // 1. Filter history for ONLY today's entries
+    const todayHistory = this.state.history.filter(h => h.date === todayStr);
+    
+    // 2. Get total doses scheduled for today
+    // This serves as the target for 100%
+    const totalScheduledToday = this.getTodayDoses().length;
 
-        const taken = this.state.history.filter(h => h.status === 'taken').length;
-        const percentage = Math.round((taken / total) * 100);
-        
-        this.setAdherenceScore(percentage);
-        
-        // Mini Heatmap
+    // 3. Initial State & Empty State: 
+    // If no medicines are listed OR no medicines have been checked yet
+    if (totalScheduledToday === 0 || todayHistory.length === 0) {
+        this.setAdherenceScore(0);
         this.renderMiniHeatmap();
+        return;
     }
 
-    setAdherenceScore(percentage) {
-        const circle = document.querySelector('.progress-circle');
-        const text = document.querySelector('.progress-value');
-        
-        const radius = circle.r.baseVal.value;
-        const circumference = radius * 2 * Math.PI;
-        
-        const offset = circumference - (percentage / 100) * circumference;
-        circle.style.strokeDashoffset = offset;
-        
-        text.textContent = `${percentage}%`;
-        
-        // Update color based on score
-        if (percentage >= 80) circle.style.stroke = 'var(--accent)';
-        else if (percentage >= 50) circle.style.stroke = 'var(--warning)';
-        else circle.style.stroke = 'var(--danger)';
+    // 4. Calculate progress
+    // Only 'taken' status increases the score
+    const takenToday = todayHistory.filter(h => h.status === 'taken').length;
+    
+    // 5. Final Percentage calculation
+    const percentage = Math.round((takenToday / totalScheduledToday) * 100);
+    
+    // Ensure it doesn't exceed 100% (safety check)
+    const finalScore = Math.min(percentage, 100);
+    
+    this.setAdherenceScore(finalScore);
+    this.renderMiniHeatmap();
+}
+  setAdherenceScore(percentage) {
+    const circle = document.querySelector('.progress-circle');
+    const text = document.querySelector('.progress-value');
+    if (!circle || !text) return;
+
+    const radius = circle.r.baseVal.value;
+    const circumference = radius * 2 * Math.PI;
+    
+    const offset = circumference - (percentage / 100) * circumference;
+    circle.style.strokeDashoffset = offset;
+    
+    text.textContent = `${percentage}%`;
+    
+    // Color transitions: Red -> Yellow -> Green
+    if (percentage === 100) {
+        circle.style.stroke = '#22C55E'; // Success Green
+    } else if (percentage > 0) {
+        circle.style.stroke = '#F59E0B'; // Progress Orange/Yellow
+    } else {
+        circle.style.stroke = '#EF4444'; // Initial/Empty Red
     }
+}
 
     renderMiniHeatmap() {
-        const container = document.getElementById('mini-heatmap');
-        container.innerHTML = '';
-        
-        // Generate last 7 days adherence
-        for(let i=6; i>=0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            const dateStr = d.toISOString().split('T')[0];
-            
-            const dayHistory = this.state.history.filter(h => h.date === dateStr);
-            let status = 'pending';
-            
-            if (dayHistory.length > 0) {
-                const allTaken = dayHistory.every(h => h.status === 'taken');
-                const hasMissed = dayHistory.some(h => h.status === 'missed');
-                status = hasMissed ? 'missed' : 'taken';
-            }
-            
-            const dot = document.createElement('div');
-            dot.className = `heatmap-dot ${status}`;
-            dot.title = dateStr;
-            container.appendChild(dot);
-        }
-    }
+    const container = document.getElementById('mini-heatmap');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const daysShort = ['S', 'M', 'T', 'W', 'T', 'F', 'S']; // Sunday is 0 in JS
+    const reorderedDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S']; // Monday-indexed for UI
+    
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    
+    // Get the date of the Monday of the current week
+    const currentDayNum = now.getDay(); // 0 (Sun) to 6 (Sat)
+    const diffToMonday = now.getDate() - currentDayNum + (currentDayNum === 0 ? -6 : 1);
+    const mondayDate = new Date(now.setDate(diffToMonday));
 
+    // Generate dots for Mon through Sun
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(mondayDate);
+        d.setDate(mondayDate.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const isToday = dateStr === todayStr;
+        
+        // Calculate status for that specific day
+        const dayHistory = this.state.history.filter(h => h.date === dateStr);
+        let status = 'pending';
+        if (dayHistory.length > 0) {
+            const hasMissed = dayHistory.some(h => h.status === 'missed');
+            status = hasMissed ? 'missed' : 'taken';
+        }
+
+        // Create the wrapper for Dot + Label
+        const dayWrapper = document.createElement('div');
+        dayWrapper.className = `heatmap-day-wrapper ${isToday ? 'today-highlight' : ''}`;
+        dayWrapper.style.display = 'flex';
+        dayWrapper.style.flexDirection = 'column';
+        dayWrapper.style.alignItems = 'center';
+        dayWrapper.style.gap = '4px';
+
+        dayWrapper.innerHTML = `
+            <div class="heatmap-dot ${status}" title="${dateStr}" 
+                 style="${isToday ? 'border: 2px solid var(--primary); transform: scale(1.2);' : ''}">
+            </div>
+            <span style="font-size: 10px; font-weight: ${isToday ? 'bold' : 'normal'}; 
+                  color: ${isToday ? 'var(--primary)' : '#94A3B8'};">
+                ${reorderedDays[i]}
+            </span>
+        `;
+        
+        container.appendChild(dayWrapper);
+    }
+}
     runMissDetectionEngine() {
         // Calculate consecutive misses
         let consecutiveMisses = 0;
