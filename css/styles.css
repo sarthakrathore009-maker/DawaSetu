@@ -1188,3 +1188,9 @@ body {
 .zone-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; }
 .zone-warning { background: #ffecdb; color: #9a3412; border: 1px solid #fb923c; }
 .zone-safe { background: #dcfce7; color: #15803d; border: 1px solid #4ade80; }
+
+@media (max-width: 768px) {
+    #header-title {
+        display: none;
+    }
+}

@@ -44,7 +44,14 @@ const translations = {
         btn_take: "Take",
         btn_skip: "Skip",
         status_taken: "Taken",
-        status_missed: "Missed"
+        status_missed: "Missed",
+        nav_about: "About Us",
+        about_us_title: "About DawaSetu",
+        zone_status: "Zone Status",
+        voice_listening: "Listening for medicine name...",
+        voice_success: "✅ Added {med} successfully!",
+        voice_fail: "Could not understand. Please try again.",
+        voice_idle: "Waiting for your voice command..."
     },
     hi: {
         nav_dashboard: "डैशबोर्ड",
@@ -91,7 +98,32 @@ const translations = {
         btn_take: "लें",
         btn_skip: "छोड़ें",
         status_taken: "लिया गया",
-        status_missed: "छूट गया"
+        status_missed: "छूट गया",
+        nav_about: "हमारे बारे में",
+        about_us_title: "DawaSetu के बारे में",
+        zone_status: "ज़ोन स्थिति",
+        voice_listening: "दवा का नाम सुन रहा हूँ...",
+        voice_success: "✅ {med} सफलतापूर्वक जोड़ा गया!",
+        voice_fail: "समझ नहीं सका। कृपया पुनः प्रयास करें।",
+        voice_idle: "आपके वॉयस कमांड की प्रतीक्षा है..."
+    },
+    es: {
+        voice_listening: "Escuchando el nombre de la medicina...",
+        voice_success: "✅ ¡{med} agregado exitosamente!",
+        voice_fail: "No se pudo entender. Por favor intenta de nuevo.",
+        voice_idle: "Esperando tu comando de voz..."
+    },
+    fr: {
+        voice_listening: "Écoute du nom du médicament...",
+        voice_success: "✅ {med} ajouté avec succès !",
+        voice_fail: "Je n'ai pas compris. Veuillez réessayer.",
+        voice_idle: "En attente de votre commande vocale..."
+    },
+    ar: {
+        voice_listening: "جاري الاستماع لاسم الدواء...",
+        voice_success: "✅ تم إضافة {med} بنجاح!",
+        voice_fail: "لم أتمكن من الفهم. يرجى المحاولة مرة أخرى.",
+        voice_idle: "في انتظار أمرك الصوتي..."
     }
 };
 

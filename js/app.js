@@ -14,7 +14,30 @@ const defaultState = {
 class DawaSetuApp {
     constructor() {
         this.state = JSON.parse(localStorage.getItem('dawasetu_state')) || defaultState;
+        if (!this.state.settings.theme) this.state.settings.theme = 'light';
         this.init();
+    }
+
+    toggleProfileMenu(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('profile-dropdown');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        
+        const usernameEl = document.getElementById('dropdown-username');
+        if (usernameEl) usernameEl.textContent = this.state.user || 'Guest';
+
+        const closeMenu = () => {
+            menu.style.display = 'none';
+            document.removeEventListener('click', closeMenu);
+        };
+        document.addEventListener('click', closeMenu);
+    }
+
+    toggleTheme() {
+        this.state.settings.theme = this.state.settings.theme === 'dark' ? 'light' : 'dark';
+        this.applySettings();
+        this.saveState();
+        document.getElementById('profile-dropdown').style.display = 'none';
     }
 
     init() {
@@ -65,20 +88,12 @@ class DawaSetuApp {
         });
 
         // Settings Toggles
-document.getElementById('lang-toggle').addEventListener('click', () => {
-    // 1. Toggle your internal state
-    this.state.settings.language = this.state.settings.language === 'en' ? 'hi' : 'en';
-    
-    // 2. Trigger the Google Translate engine
-    const googleSelect = document.querySelector('.goog-te-combo');
-    if (googleSelect) {
-        googleSelect.value = this.state.settings.language;
-        googleSelect.dispatchEvent(new Event('change')); // This tells Google to translate now
-    }
-
-    this.applySettings();
-    this.saveState();
-});
+        document.getElementById('elder-toggle').addEventListener('click', (e) => {
+            this.state.settings.elderlyMode = !this.state.settings.elderlyMode;
+            e.currentTarget.classList.toggle('active', this.state.settings.elderlyMode);
+            this.applySettings();
+            this.saveState();
+        });
 
         document.getElementById('caregiver-toggle').addEventListener('click', (e) => {
             this.state.settings.caregiverMode = !this.state.settings.caregiverMode;
@@ -115,7 +130,41 @@ document.getElementById('lang-toggle').addEventListener('click', () => {
         });
     }
 
+    toggleLangMenu(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('lang-dropdown');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+
+        const closeMenu = () => {
+            menu.style.display = 'none';
+            document.removeEventListener('click', closeMenu);
+        };
+        document.addEventListener('click', closeMenu);
+    }
+
+    setLanguage(lang) {
+        this.state.settings.language = lang;
+        
+        // Trigger the Google Translate engine
+        const googleSelect = document.querySelector('.goog-te-combo');
+        if (googleSelect) {
+            googleSelect.value = lang;
+            googleSelect.dispatchEvent(new Event('change'));
+        }
+
+        this.applySettings();
+        this.saveState();
+        document.getElementById('lang-dropdown').style.display = 'none';
+    }
+
     applySettings() {
+        // Theme
+        if (this.state.settings.theme === 'dark') {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+
         // Elderly Mode
         if (this.state.settings.elderlyMode) {
             document.body.classList.add('elderly-mode');
@@ -126,13 +175,16 @@ document.getElementById('lang-toggle').addEventListener('click', () => {
         }
 
         // Language
-        document.querySelector('.lang-text').textContent = this.state.settings.language.toUpperCase();
+        const langTextEl = document.querySelector('.lang-text');
+        if (langTextEl) {
+            langTextEl.textContent = this.state.settings.language.toUpperCase();
+        }
         this.translateUI();
     }
 
     translateUI() {
         const lang = this.state.settings.language;
-        const dict = window.translations[lang];
+        const dict = window.translations[lang] || window.translations['en'];
         
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
@@ -149,14 +201,22 @@ document.getElementById('lang-toggle').addEventListener('click', () => {
 
     navigate(viewId) {
         // Update nav items
+        let titleUpdated = false;
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
             if (item.getAttribute('data-target') === viewId) {
                 item.classList.add('active');
                 const titleKey = item.querySelector('span').getAttribute('data-i18n');
-                document.getElementById('header-title').textContent = window.translations[this.state.settings.language][titleKey];
+                const lang = this.state.settings.language;
+                const dict = window.translations[lang] || window.translations['en'];
+                document.getElementById('header-title').textContent = dict[titleKey];
+                titleUpdated = true;
             }
         });
+        
+        if (!titleUpdated && viewId === 'legal') {
+            document.getElementById('header-title').textContent = "Legal & Policies";
+        }
 
         // Update views
         document.querySelectorAll('.view').forEach(view => {
@@ -216,9 +276,27 @@ document.getElementById('lang-toggle').addEventListener('click', () => {
     
     loginAsGuest() {
         const guestId = Math.floor(1000 + Math.random() * 9000);
-        this.state.user = `Guest_${guestId}`;
+        const currentLanguage = this.state.settings ? this.state.settings.language : 'en';
+        
+        // Reset state for a completely fresh guest account
+        this.state = {
+            user: `Guest_${guestId}`,
+            medicines: [],
+            history: [],
+            contacts: [],
+            settings: {
+                language: currentLanguage,
+                elderlyMode: false,
+                caregiverMode: false,
+                isListening: false,
+                theme: this.state.settings.theme || 'light'
+            }
+        };
+        
         this.saveState();
-        this.showAppView();
+        
+        // Refresh the page to guarantee the UI is completely reset to the new empty state
+        window.location.reload();
     }
 
     logout() {
@@ -233,7 +311,9 @@ document.getElementById('lang-toggle').addEventListener('click', () => {
         if (hour >= 12 && hour < 17) greetingKey = 'good_afternoon';
         else if (hour >= 17) greetingKey = 'good_evening';
         
-        document.getElementById('greeting-text').textContent = window.translations[this.state.settings.language][greetingKey];
+        const lang = this.state.settings.language;
+        const dict = window.translations[lang] || window.translations['en'];
+        document.getElementById('greeting-text').textContent = dict[greetingKey];
     }
 
     // AI Chatbot Logic
@@ -292,6 +372,33 @@ document.getElementById('lang-toggle').addEventListener('click', () => {
     isListening = false;
     recognition = null;
 
+    getSpeechLang() {
+        const lang = this.state.settings.language;
+        const map = { 'en': 'en-US', 'hi': 'hi-IN', 'es': 'es-ES', 'fr': 'fr-FR', 'ar': 'ar-SA' };
+        return map[lang] || 'en-US';
+    }
+
+    speakVoice(key, medName) {
+        const lang = this.state.settings.language;
+        const dict = window.translations[lang] || window.translations['en'];
+        let textToSpeak = dict[key] || window.translations['en'][key];
+        
+        if (medName) {
+            textToSpeak = textToSpeak.replace('{med}', medName);
+        }
+
+        const responseBox = document.getElementById('voice-response-box');
+        if (responseBox) responseBox.innerText = textToSpeak;
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance();
+            msg.text = textToSpeak;
+            msg.lang = this.getSpeechLang();
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
     toggleMainVoice() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         
@@ -303,69 +410,97 @@ document.getElementById('lang-toggle').addEventListener('click', () => {
         if (!this.recognition) {
             this.recognition = new SpeechRecognition();
             this.recognition.continuous = false;
-            this.recognition.lang = 'en-US'; 
 
             this.recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript.toLowerCase();
-                document.getElementById('main-voice-text').innerText = `I heard: "${transcript}"`;
+                const transcriptBox = document.getElementById('voice-transcript-box');
+                if (transcriptBox) {
+                    transcriptBox.style.display = 'block';
+                    transcriptBox.innerText = `🗣️ "${transcript}"`;
+                }
                 this.parseMedicineVoice(transcript);
             };
 
             this.recognition.onend = () => {
                 this.isListening = false;
-                document.getElementById('main-voice-btn').classList.remove('listening');
+                const btn = document.getElementById('main-voice-btn');
+                if (btn) {
+                    btn.classList.remove('listening');
+                    btn.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
+                }
             };
         }
+
+        this.recognition.lang = this.getSpeechLang();
 
         if (this.isListening) {
             this.recognition.stop();
         } else {
             this.recognition.start();
             this.isListening = true;
-            document.getElementById('main-voice-text').innerText = "Listening for medicine name...";
-            document.getElementById('main-voice-btn').classList.add('listening');
+            
+            const transcriptBox = document.getElementById('voice-transcript-box');
+            if (transcriptBox) transcriptBox.style.display = 'none';
+            
+            this.speakVoice('voice_listening');
+            
+            const btn = document.getElementById('main-voice-btn');
+            if (btn) {
+                btn.classList.add('listening');
+                btn.style.boxShadow = '0 0 0 8px rgba(255,255,255,0.4)';
+            }
         }
     }
 
     parseMedicineVoice(text) {
-        // Regex to extract medicine name and time
-        const addPattern = /(?:add|log|new)\s+([a-z\d\s]+?)(?:\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?))?$/i;
+        // Simple fallback regex to capture first/second word if it doesn't match English strict format
+        const addPattern = /(?:add|log|new|jo|jodo|anadir|ajouter|idaafa)\s+([a-zA-Z\d\s]+?)(?:\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?))?$/i;
         const match = text.match(addPattern);
 
+        let medName = "";
+        let rawTime = "08:00 AM";
+
         if (match) {
-            const medName = match[1].trim();
-            const rawTime = match[2] || "08:00 AM";
-
-            const newMed = {
-                id: this.generateId(),
-                name: medName.charAt(0).toUpperCase() + medName.slice(1),
-                dosage: "1 Tablet", // Default dosage for voice
-                timing: rawTime.includes('PM') ? 'Evening' : 'Morning',
-                frequency: "Daily",
-                startDate: new Date().toISOString().split('T')[0],
-                endDate: "",
-                critical: false,
-                createdAt: new Date().toISOString()
-            };
-
-            // PUSH TO STATE
-            this.state.medicines.push(newMed);
-            
-            // SAVE AND REFRESH UI
-            this.saveState();
-            this.renderMedicines();
-            this.updateDashboard();
-
-            document.getElementById('main-voice-text').innerHTML = 
-                `<span style="color:#22C55E">✅ Added ${newMed.name}!</span>`;
-            
-            setTimeout(() => {
-                document.getElementById('main-voice-text').textContent = 'Tap to speak. Try "Add Aspirin"';
-            }, 3000);
-
+            medName = match[1].trim();
+            if (match[2]) rawTime = match[2];
+        } else if (text.length > 2) {
+            // Very simple extraction for multi-lingual fallback
+            const words = text.split(" ");
+            medName = words.length > 1 ? words[1] : words[0]; 
         } else {
-            document.getElementById('main-voice-text').innerText = "Try: 'Add Aspirin' or 'Add Dolo at 9 PM'";
+            this.speakVoice('voice_fail');
+            return;
         }
+
+        const newMed = {
+            id: this.generateId(),
+            name: medName.charAt(0).toUpperCase() + medName.slice(1),
+            dosage: "1 Tablet",
+            timing: rawTime.toLowerCase().includes('pm') ? 'Evening' : 'Morning',
+            frequency: "Daily",
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: "",
+            critical: false,
+            createdAt: new Date().toISOString()
+        };
+
+        // PUSH TO STATE
+        this.state.medicines.push(newMed);
+        
+        // SAVE AND REFRESH UI
+        this.saveState();
+        this.renderMedicines();
+        this.updateDashboard();
+
+        this.speakVoice('voice_success', newMed.name);
+        
+        setTimeout(() => {
+            if (!this.isListening) {
+                const tBox = document.getElementById('voice-transcript-box');
+                if (tBox) tBox.style.display = 'none';
+                this.speakVoice('voice_idle');
+            }
+        }, 5000);
     }
     generateId() {
         return Math.random().toString(36).substr(2, 9);
@@ -663,7 +798,8 @@ removeMedicine(medId) {
         
         // Emotional Intelligence Layer
         const msgEl = document.getElementById('emotional-message');
-        const dict = window.translations[this.state.settings.language];
+        const lang = this.state.settings.language;
+        const dict = window.translations[lang] || window.translations['en'];
         
         if (consecutiveMisses === 0) {
             msgEl.textContent = dict['emotional_perfect'] || "Perfect adherence! Keep it up.";
@@ -716,7 +852,8 @@ removeMedicine(medId) {
         filtered.forEach(record => {
             const med = this.state.medicines.find(m => m.id === record.medId);
             const medName = med ? med.name : 'Unknown Medicine';
-            const dict = window.translations[this.state.settings.language];
+            const lang = this.state.settings.language;
+            const dict = window.translations[lang] || window.translations['en'];
             const statusText = record.status === 'taken' ? dict['status_taken'] : dict['status_missed'];
             const colorClass = record.status === 'taken' ? 'success-text' : 'danger-text';
             const icon = record.status === 'taken' ? 'check-circle' : 'x-circle';
@@ -741,11 +878,61 @@ removeMedicine(medId) {
 
     renderInsights() {
         const total = this.state.history.length;
-        if (total === 0) return;
+        let percentage = 0;
+        
+        if (total > 0) {
+            const taken = this.state.history.filter(h => h.status === 'taken').length;
+            percentage = Math.round((taken / total) * 100);
+            document.getElementById('insight-adherence').textContent = `${percentage}%`;
+        } else {
+            document.getElementById('insight-adherence').textContent = `--%`;
+        }
 
-        const taken = this.state.history.filter(h => h.status === 'taken').length;
-        const percentage = Math.round((taken / total) * 100);
-        document.getElementById('insight-adherence').textContent = `${percentage}%`;
+        // Zone Status Logic
+        let zone = 'Safe Zone';
+        let zoneColor = 'var(--success)';
+        let zoneBg = '#dcfce7'; // light green
+        let zoneDesc = 'Great job! You are maintaining good adherence.';
+
+        const missedCritical = this.state.history.some(h => {
+            if (h.status === 'missed') {
+                const m = this.state.medicines.find(med => med.id === h.medId);
+                return m && m.critical;
+            }
+            return false;
+        });
+
+        if (missedCritical) {
+            zone = 'Danger Zone';
+            zoneColor = 'var(--danger)';
+            zoneBg = '#fee2e2'; // light red
+            zoneDesc = 'Critical medication missed! Please take it immediately.';
+        } else if (percentage >= 70 || total === 0) {
+            zone = 'Safe Zone';
+            zoneColor = 'var(--success)';
+            zoneBg = '#dcfce7';
+            if (total === 0) zoneDesc = 'No history yet. Safe zone by default.';
+            else zoneDesc = 'Great job! You are maintaining good adherence.';
+        } else if (percentage >= 40) {
+            zone = 'Medium Zone';
+            zoneColor = 'var(--warning)';
+            zoneBg = '#fef3c7'; // light orange
+            zoneDesc = 'You are in the medium zone. Try to not miss your doses.';
+        } else {
+            zone = 'Danger Zone';
+            zoneColor = 'var(--danger)';
+            zoneBg = '#fee2e2';
+            zoneDesc = 'Poor adherence! Please consult your doctor or caregiver.';
+        }
+
+        const zoneEl = document.getElementById('insight-zone');
+        if (zoneEl) {
+            zoneEl.textContent = zone;
+            zoneEl.style.color = zoneColor;
+            zoneEl.style.backgroundColor = zoneBg;
+            const zoneDescEl = document.getElementById('insight-zone-desc');
+            if (zoneDescEl) zoneDescEl.textContent = zoneDesc;
+        }
         
         // Mock analytics
         const missedDoses = this.state.history.filter(h => h.status === 'missed');
